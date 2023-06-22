@@ -40,6 +40,8 @@ pub enum SeccompErrno {
     ERANGE,
     /// Unable to load the filter due to thread issues.
     ESRCH,
+    /// Libseccomp attempted to access a resource that is in use by another process
+    EBUSY
 }
 
 impl SeccompErrno {
@@ -58,6 +60,7 @@ impl SeccompErrno {
             EOPNOTSUPP => "The library doesn't support the particular operation",
             ERANGE => "Provided buffer is too small",
             ESRCH => "Unable to load the filter due to thread issues",
+            EBUSY => "Libseccomp attempted to access a resource that is in use by another process"
         }
     }
 }
@@ -138,6 +141,7 @@ impl SeccompError {
             libc::EOPNOTSUPP => SeccompErrno::EOPNOTSUPP,
             libc::ERANGE => SeccompErrno::ERANGE,
             libc::ESRCH => SeccompErrno::ESRCH,
+            libc::EBUSY => SeccompErrno::EBUSY,
             _ => {
                 return Self::with_msg(format!(
                     "libseccomp-rs error: errno {} not handled.",
@@ -280,6 +284,10 @@ mod tests {
         assert_eq!(
             SeccompError::from_errno(-libc::ESRCH).msg(),
             SeccompErrno::ESRCH.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::EBUSY).msg(),
+            SeccompErrno::EBUSY.strerror()
         );
         assert_eq!(
             SeccompError::from_errno(-libc::EPIPE).msg(),
